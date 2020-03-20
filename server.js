@@ -125,6 +125,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z                
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==1){
                 let w = arrayNXN[i][1]
                 let x = arrayNXN[i][2]
@@ -133,6 +134,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==2){
                 let w = arrayNXN[i][2]
                 let x = arrayNXN[i][3]
@@ -141,9 +143,9 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }
-            let f = arrayNXN[i][j]
-            vector.push(arrayNXN[i][j])
+            let f = arrayNXN[i][j]            
         }
         console.log("--------")
     }
@@ -159,6 +161,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z                
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==1){
                 let w = arrayNXN[1][i]
                 let x = arrayNXN[2][i]
@@ -167,6 +170,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==2){
                 let w = arrayNXN[2][i]
                 let x = arrayNXN[3][i]
@@ -175,9 +179,8 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
-            }
-            let f = arrayNXN[i][j]
-            vector.push(arrayNXN[i][j])
+                vector.push(word)
+            }                        
         }
         console.log("--------")
     }
@@ -193,6 +196,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z                
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==1){
                 let w = arrayNXN[i][1]
                 let x = arrayNXN[i+1][2]
@@ -201,6 +205,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==2){
                 let w = arrayNXN[i][2]
                 let x = arrayNXN[i+1][3]
@@ -209,9 +214,8 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }
-            let f = arrayNXN[i][j]
-            vector.push(arrayNXN[i][j])
         }
         console.log("--------")
     }
@@ -227,6 +231,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z                
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==1){
                 let w = arrayNXN[1][i]
                 let x = arrayNXN[2][i-1]
@@ -235,6 +240,7 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
+                vector.push(word)
             }if(j==2){
                 let w = arrayNXN[2][i]
                 let x = arrayNXN[3][i-1]
@@ -243,12 +249,34 @@ function hasMutation(dna) {
                 let word = w+x+y+z
                 console.log("word")
                 console.log(word)
-            }
-            let f = arrayNXN[i][j]
-            vector.push(arrayNXN[i][j])
+                vector.push(word)
+            }            
         }
         console.log("--------")
     }
+
+    console.log("*******")
+    console.log("vector")
+    console.log("--------")
+    console.log(vector)
+
+    const vectorReverse = []
+
+    for(v of vector){
+        vectorReverse.push(v.split("").reverse().join(""))
+    }
+    console.log("*******")
+    console.log("vector reverse")
+    console.log("--------")
+    console.log(vectorReverse)
+
+    console.log("*******")
+    console.log("all combination vector")
+    const vectorComplete = [...vector , ...vectorReverse];    
+    console.log("--------")
+    console.log(vectorComplete)
+    console.log("length vector")
+    console.log(vectorComplete.length) 
 
 
     // console.log("each parameter => ")
