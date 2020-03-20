@@ -1,7 +1,8 @@
 const express = require('express')
-const app = express();
+const bodyParser = require('body-parser')
+const app = express()
 
-app.use(express.json())
+app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -10,10 +11,21 @@ app.get('/', (req, res) => {
 
 app.post('/mutation/', (req, res) => {
     console.log("hola mutation")
+    console.log(req.body)
     const dnaArr = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"];
     // hasMutation(dnaArr);
-    hasMutation(req.body)
-    res.send('end mutation!')
+    const dna = req.body
+    const json = JSON.stringify(dna)
+
+    // payload
+    let dnaData = null;
+    try {
+        dnaData = JSON.parse(json);
+    } catch (e) {
+        console.log('error ' + e)
+    }
+    //res.send(dnaData)
+    res.send('has mutation? : '+ hasMutation(dnaData.dna))
 });
 
 function queryDB() {
@@ -25,24 +37,25 @@ app.get('/stats', (req, res) => {
 });
 
 function hasMutation(dna) {
-    const dnaArr = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"];
+    let has = false
+    const dnaArrTrue = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"]
+    const dnaArrFalse = ["ATGCGA","CAGTGC","TTATTT","AGACGG","GCGTCA","TCACTG"]
     // const [a,b,c,d,e,f] = dnaArr
-    const json = JSON.stringify(dna)
     console.log("hasMutation Method")
-    console.log("hasMutation dnaJSON")
-    console.log(json)
-    console.log("sin hasMutation dnaJSON")
     console.log(dna)
-    const dnaParsed = JSON.parse(json)
-    console.log("dnaParsed Method")
-    console.log(dnaParsed)
-    const [a,b,c,d,e,f] = dnaArr
+    const [a,b,c,d,e,f] = dna
     console.log("A")
     console.log(a)
     console.log("B")
     console.log(b)
+    console.log("C")
+    console.log(c)
+    console.log("D")
+    console.log(d)
+    console.log("E")
+    console.log(e)
     console.log("A EACH")
-    const arrayNXN = []
+    let arrayNXN = []
     const ar = Array.from(a)
     console.log("ar =>")
     console.log(ar)
@@ -272,19 +285,43 @@ function hasMutation(dna) {
 
     console.log("*******")
     console.log("all combination vector")
-    const vectorComplete = [...vector , ...vectorReverse];    
+    //const vectorComplete = [...vector , ...vectorReverse];    
+    const vectorComplete = vector
     console.log("--------")
     console.log(vectorComplete)
     console.log("length vector")
     console.log(vectorComplete.length) 
 
+    //const vectorCompleteCopy = vectorComplete
+    console.log("string letras duplicadas 4 en secuencia Aaron")
+
+    vector.forEach(l =>{
+        //console.log(allEqual(l))
+        if(allEqual(l)) has = true
+    })
+
+    //console.log(find_duplicate_in_array(vector));
+
+    // let counts = [];
+    // for(let i = 0; i <= vectorComplete.length; i++) {
+    //     if(counts[vectorComplete[i]] === undefined) {
+    //         counts[vectorComplete[i]] = 1;
+    //     } else {
+    //         has = true
+    //     }
+    // }
+
+    // console.log("encontrando duplicado")
+    // console.log(counts)
+    // console.log("hasMutation ?")
+    // console.log(has)
 
     // console.log("each parameter => ")
     // for (let i of dnaArrElements){
     //     console.log(i)
     // }
 
-    let has = false;
+    //let has = false;
     // console.log("dna => ")
     // console.log(dna.data)
     // const arrStrDNA = dna;
@@ -294,6 +331,31 @@ function hasMutation(dna) {
     // console.log(dnaArr[0])
     console.log(has)
     return has;
+}
+
+function allEqual(input) {
+    return input.split('').every(char => char === input[0]);
+}
+
+
+function find_duplicate_in_array(arra1) {
+    const object = {};
+    const result = [];
+
+    arra1.forEach(item => {
+        if(!object[item])
+            object[item] = 0;
+        object[item] += 1;
+    })
+
+    for (const prop in object) {
+        if(object[prop] >= 2) {
+            result.push(prop);
+        }
+    }
+
+    return result;
+
 }
 
 app.listen(8000, () => {
