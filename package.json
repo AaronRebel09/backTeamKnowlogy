@@ -1,0 +1,23 @@
+{
+  "name": "backteamknowlogy",
+  "version": "1.0.0",
+  "description": "backend api cloud",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AaronRebel09/backTeamKnowlogy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AaronRebel09/backTeamKnowlogy/issues"
+  },
+  "homepage": "https://github.com/AaronRebel09/backTeamKnowlogy#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1"
+  }
+}
