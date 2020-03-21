@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const host = process.env.IP  || '0.0.0.0';
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8000;
 const mongo = require('mongodb').MongoClient;
 
 const mongoUri = process.env.uri;
@@ -418,4 +418,7 @@ app.use(function(err, req, res, next) {
 });
 
 app.listen(port, host);
+//app.listen(port, () => {
+//    console.log('Example app listening on port 8080!');
+//});
 console.log('Dna Backend started on: ' + host + ':' + port);
