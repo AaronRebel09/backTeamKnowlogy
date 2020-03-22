@@ -56,6 +56,7 @@ app.post('/mutation/', (req, res) => {
         } else {
             const db = client.db(dbName);
             const collection = db.collection('dna');
+            collection.find(dna);
             collection.insertOne(dna);
         }
     });
@@ -69,6 +70,24 @@ function queryDB() {
 
 app.get('/stats', (req, res) => {
     res.send('Hello stats!')
+});
+
+app.get('/dnas', (req, res) => {
+    console.log('Hello dnas!');
+    mongo.connect(dbConnectionUrl, (err, client) => {
+        if (err) {
+          console.error(err);
+          res.send({success: false, result: 9999});
+        } else {
+            const db = client.db(dbName);
+            const collection = db.collection('dna');
+            collection.find({}).toArray(function(err, docs) {                
+                console.log("Found the following records");
+                console.log(docs);   
+                res.send(JSON.stringify(docs));             
+            });            
+        }
+    });
 });
 
 function hasMutation(dna) {
