@@ -1,6 +1,28 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const app = express()
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+
+const host = process.env.IP  || '0.0.0.0';
+const port = process.env.PORT || 8000;
+const mongo = require('mongodb').MongoClient;
+
+const mongoUri = process.env.uri;
+const mongoUsername = process.env.username;
+const mongoPassword = process.env.password;
+const dbName = process.env.database_name || process.env.MONGODB_DBNAME || 'dnadb';
+
+let dbConnectionUrl;
+
+// If the mongo secret has been attached, modify the provided URI to include
+// authentication credentials
+if (mongoUri) {
+    let auth = mongoUsername + ':' + mongoPassword + '@'
+    let pieces = mongoUri.split('//');
+    dbConnectionUrl = pieces[0] + '//' + auth + pieces[1] + '/' + dbName;
+}
+else {
+    dbConnectionUrl  = process.env.MONGODB_URL || 'mongodb://localhost:27017/dnadb';
+}
 
 app.use(bodyParser.json())
 
@@ -25,6 +47,20 @@ app.post('/mutation/', (req, res) => {
         console.log('error ' + e)
     }
     //res.send(dnaData)
+
+    console.log("Data Base Connection");
+    mongo.connect(dbConnectionUrl, (err, client) => {
+        if (err) {
+          console.error(err);
+          res.send({success: false, result: 9999});
+        } else {
+            const db = client.db(dbName);
+            const collection = db.collection('dna');
+            collection.find(dna);
+            collection.insertOne(dna);
+        }
+    });
+
     res.send('has mutation? : '+ hasMutation(dnaData.dna))
 });
 
@@ -34,6 +70,24 @@ function queryDB() {
 
 app.get('/stats', (req, res) => {
     res.send('Hello stats!')
+});
+
+app.get('/dnas', (req, res) => {
+    console.log('Hello dnas!');
+    mongo.connect(dbConnectionUrl, (err, client) => {
+        if (err) {
+          console.error(err);
+          res.send({success: false, result: 9999});
+        } else {
+            const db = client.db(dbName);
+            const collection = db.collection('dna');
+            collection.find({}).toArray(function(err, docs) {                
+                console.log("Found the following records");
+                console.log(docs);   
+                res.send(JSON.stringify(docs));             
+            });            
+        }
+    });
 });
 
 function hasMutation(dna) {
@@ -329,7 +383,7 @@ function hasMutation(dna) {
     // console.log(dnaArr)
     // console.log("arrStrDNA 0 => ")
     // console.log(dnaArr[0])
-    console.log(has)
+    console.log(has)    
     return has;
 }
 
@@ -358,6 +412,32 @@ function find_duplicate_in_array(arra1) {
 
 }
 
-app.listen(8000, () => {
-    console.log('Example app listening on port 8000!')
+app.get('/debug', function(req, res, next) {
+
+    var details = {
+        "mongo_url": dbConnectionUrl,
+        "connected": false
+    };
+
+    mongo.connect(dbConnectionUrl, (err, client) => {
+        if (err) {
+            console.error(err)
+        } else {
+            console.log('Connected to Mongo')
+            details["connected"] = true;
+            console.log("Updated details")
+        }
+        res.send(details);
+    });
 });
+
+app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong.')
+});
+
+app.listen(port, host);
+//app.listen(port, () => {
+//    console.log('Example app listening on port 8080!');
+//});
+console.log('Dna Backend started on: ' + host + ':' + port);
