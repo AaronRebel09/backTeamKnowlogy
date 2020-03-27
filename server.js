@@ -3,8 +3,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const host = process.env.IP  || '0.0.0.0';
-const port = process.env.PORT || 8000;
-const mongo = require('mongodb').MongoClient;
+const port = process.env.PORT || 8080;
 
 const mongoUri = process.env.uri;
 const mongoUsername = process.env.username;
@@ -13,16 +12,16 @@ const dbName = process.env.database_name || process.env.MONGODB_DBNAME || 'dnadb
 
 let dbConnectionUrl;
 
-// If the mongo secret has been attached, modify the provided URI to include
-// authentication credentials
-if (mongoUri) {
-    let auth = mongoUsername + ':' + mongoPassword + '@'
-    let pieces = mongoUri.split('//');
-    dbConnectionUrl = pieces[0] + '//' + auth + pieces[1] + '/' + dbName;
-}
-else {
-    dbConnectionUrl  = process.env.MONGODB_URL || 'mongodb://localhost:27017/dnadb';
-}
+
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://admin:admin@cluster0-drbzu.gcp.mongodb.net/test?retryWrites=true&w=majority";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+client.connect(err => {
+  const collection = client.db("test").collection("devices");
+  // perform actions on the collection object
+  client.close();
+});
+
 
 app.use(bodyParser.json())
 
@@ -49,7 +48,7 @@ app.post('/mutation/', (req, res) => {
     //res.send(dnaData)
 
     console.log("Data Base Connection");
-    mongo.connect(dbConnectionUrl, (err, client) => {
+    client.connect(uri, (err, client) => {
         if (err) {
           console.error(err);
           res.send({success: false, result: 9999});
@@ -74,7 +73,7 @@ app.get('/stats', (req, res) => {
 
 app.get('/dnas', (req, res) => {
     console.log('Hello dnas!');
-    mongo.connect(dbConnectionUrl, (err, client) => {
+    client.connect(uri, (err, client) => {
         if (err) {
           console.error(err);
           res.send({success: false, result: 9999});
@@ -415,11 +414,11 @@ function find_duplicate_in_array(arra1) {
 app.get('/debug', function(req, res, next) {
 
     var details = {
-        "mongo_url": dbConnectionUrl,
+        "mongo_url": uri,
         "connected": false
     };
 
-    mongo.connect(dbConnectionUrl, (err, client) => {
+    client.connect(uri, (err, client) => {
         if (err) {
             console.error(err)
         } else {
