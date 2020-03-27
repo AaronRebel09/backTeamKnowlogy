@@ -5,8 +5,15 @@ REST API
  
 para probar localmente basta con instalar mongodb por default
 
+Si lo quieres probar en Google App Engine 
+visita el siguiente link
+https://backteamk.appspot.com/
+
+/
+hello world
+
 prueba lanzando POST METHOD
-http://localhost:8000/mutation/
+/mutation/
 
 enviar request como json
 
@@ -16,13 +23,14 @@ a la salida recibiras una respuesta como la siguiente
 
 has mutation? [TRUE / FALSE]
 
-http://localhost:8000/dnas
+/dnas/
 
 lista todos los documentos de la coleccion dna
 
-Si lo quieres probar en Google App Engine 
-visita el siguiente link
-https://backteamk.appspot.com/
+/stats/
+
+conteo de dnas verificados
+
 
 
 
