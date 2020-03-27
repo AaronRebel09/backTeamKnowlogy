@@ -2,74 +2,113 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 
-const host = process.env.IP  || '0.0.0.0';
-const port = process.env.PORT || 8000;
-const mongo = require('mongodb').MongoClient;
-
-const mongoUri = process.env.uri;
-const mongoUsername = process.env.username;
-const mongoPassword = process.env.password;
-const dbName = process.env.database_name || process.env.MONGODB_DBNAME || 'dnadb';
-
-let dbConnectionUrl;
-
-// If the mongo secret has been attached, modify the provided URI to include
-// authentication credentials
-if (mongoUri) {
-    let auth = mongoUsername + ':' + mongoPassword + '@'
-    let pieces = mongoUri.split('//');
-    dbConnectionUrl = pieces[0] + '//' + auth + pieces[1] + '/' + dbName;
-}
-else {
-    dbConnectionUrl  = process.env.MONGODB_URL || 'mongodb://localhost:27017/dnadb';
-}
-
 app.use(bodyParser.json())
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+const host = process.env.IP  || '0.0.0.0';
+const port = process.env.PORT || 8080;
 
+const MongoClient = require('mongodb').MongoClient;
+const dbName = process.env.database_name || process.env.MONGODB_DBNAME || 'dnadb';
+const dnaCollection = 'dna';
+
+// replace the uri string with your connection string.
+const uri = "mongodb+srv://admin:admin@cluster0-drbzu.gcp.mongodb.net/test?retryWrites=true&w=majority";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+MongoClient.connect(uri, function(err, client) {
+   if(err) {
+        console.log('Error occurred while connecting to MongoDB Atlas...\n',err);
+   }
+   console.log('Connected...');
+   const collection = client.db("test").collection("devices");
+   // perform actions on the collection object
+   client.close();
+});
+
+app.get('/debug', function(req, res, next) {
+
+    let details = {
+        "mongo_url": uri,
+        "connected": false
+    };
+
+    MongoClient.connect(uri, (err, client) => {
+        if (err) {
+            console.error('Error occurred while connecting to MongoDB Atlas trying connecting data base dnadb...\n',err);
+            res.send({success: false, result: 9999});
+        } else {
+            console.log('Connected to Mongo')
+            details["connected"] = true;
+            console.log("Updated details")
+        }
+        res.send(details);
+        client.close();
+    });
+});
+
+app.get('/', (req, res) => {
+    res.send('Wellcome to DNA Has Mutation Rest API!')
+});
+
+app.get('/stats', (req, res) => {
+    res.send('Hello stats!')
+});
+
+app.get('/dnas', (req, res) => {
+    console.log('Hello dnas!');
+    MongoClient.connect(uri, (err, client) => {
+        if (err) {
+          console.error('Error occurred while connecting to MongoDB Atlas trying connecting data base dnadb...\n',err);
+          res.send({success: false, result: 9999});
+        } else {
+            const db = client.db(dbName);
+            const collection = db.collection(dnaCollection);
+            collection.find({}).toArray(function(err, docs) {                
+                console.log("Found the following records");
+                console.log(docs);   
+                res.send(JSON.stringify(docs));             
+            });  
+            client.close();          
+        }
+    });
 });
 
 app.post('/mutation/', (req, res) => {
     console.log("hola mutation")
-    console.log(req.body)
-    const dnaArr = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"];
+    console.log(req.body)    
     // hasMutation(dnaArr);
     const dna = req.body
     const json = JSON.stringify(dna)
 
     // payload
     let dnaData = null;
+    //has mutation flag
+    let has = false;
+
     try {
         dnaData = JSON.parse(json);
     } catch (e) {
         console.log('error ' + e)
-    }
-    //res.send(dnaData)
+    }       
 
-    console.log("Data Base Connection");
-    mongo.connect(dbConnectionUrl, (err, client) => {
+    has = hasMutation(dnaData.dna)
+
+    if(has){
+        MongoClient.connect(uri, (err, client) => {
         if (err) {
-          console.error(err);
+          console.error('Error occurred while connecting to MongoDB Atlas trying connecting data base dnadb...\n',err);
           res.send({success: false, result: 9999});
         } else {
             const db = client.db(dbName);
-            const collection = db.collection('dna');
-            collection.find(dna);
-            collection.insertOne(dna);
+            const collection = db.collection(dnaCollection);
+            collection.insertOne(dna); 
+            client.close();           
         }
-    });
+        });
+    }else{
+        console.log("save failed mutation collection and count")
+    }
 
-    res.send('has mutation? : '+ hasMutation(dnaData.dna))
-});
-
-function queryDB() {
-    const dnaArr = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"];
-}
-
-app.get('/stats', (req, res) => {
-    res.send('Hello stats!')
+    res.send('has mutation? : '+ has)
 });
 
 app.get('/dnas', (req, res) => {
@@ -92,9 +131,6 @@ app.get('/dnas', (req, res) => {
 
 function hasMutation(dna) {
     let has = false
-    const dnaArrTrue = ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"]
-    const dnaArrFalse = ["ATGCGA","CAGTGC","TTATTT","AGACGG","GCGTCA","TCACTG"]
-    // const [a,b,c,d,e,f] = dnaArr
     console.log("hasMutation Method")
     console.log(dna)
     const [a,b,c,d,e,f] = dna
@@ -113,29 +149,11 @@ function hasMutation(dna) {
     const ar = Array.from(a)
     console.log("ar =>")
     console.log(ar)
-    // ar.forEach(l => {
-    //     console.log(l)
-    // });
     const br = Array.from(b)
-    // br.forEach(l => {
-    //     console.log(l)
-    // });
     const cr = Array.from(c)
-    // cr.forEach(l => {
-    //     console.log(l)
-    // });
     const dr = Array.from(d)
-    // dr.forEach(l => {
-    //     console.log(l)
-    // });
     const er = Array.from(e)
-    // er.forEach(l => {
-    //     console.log(l)
-    // });
     const fr = Array.from(f)
-    // fr.forEach(l => {
-    //     console.log(l)
-    // });
 
     console.log("arrayNXN")
     arrayNXN.push(ar)
@@ -145,35 +163,10 @@ function hasMutation(dna) {
     arrayNXN.push(er)
     arrayNXN.push(fr)
     console.log(arrayNXN)
-    // dnaArr.forEach(elem => {
-    //     console.log(elem);
-    // });
-
-    // let dnaArrElements = dnaArr.map(letter => {
-    //     console.log(letter);
-    //     let arr = [];
-    //     arr.push(Array.from(letter));
-    //     console.log(arr);
-    //     return arr;
-    // });
-    // console.log("dnaArrElements => ")
-    // console.log(dnaArrElements);
-    // console.log("for dnaArrElements => ")
-    // console.log("test arrayNXN")
-    // console.log(arrayNXN[0][0])
-    // console.log(arrayNXN[1][0])
-    // console.log(arrayNXN[2][0])
-    // console.log(arrayNXN[3][0])
-    // console.log(arrayNXN[4][0])
-    // console.log(arrayNXN[5][0])
     console.log("arrayNXN length")
     console.log(arrayNXN.length)
     console.log("for arrayNXN all letters")
-    // for (let i=0; i<arrayNXN.length; i++) {
-    //     for (let j=0; j<arrayNXN.length; j++) {
-    //         console.log(arrayNXN[i][j])
-    //     }
-    // }
+
     //size of word
     const   WORD = 4
     //size of matrix
@@ -325,64 +318,14 @@ function hasMutation(dna) {
     console.log("*******")
     console.log("vector")
     console.log("--------")
-    console.log(vector)
-
-    const vectorReverse = []
-
-    for(v of vector){
-        vectorReverse.push(v.split("").reverse().join(""))
-    }
-    console.log("*******")
-    console.log("vector reverse")
-    console.log("--------")
-    console.log(vectorReverse)
-
-    console.log("*******")
-    console.log("all combination vector")
-    //const vectorComplete = [...vector , ...vectorReverse];    
-    const vectorComplete = vector
-    console.log("--------")
-    console.log(vectorComplete)
-    console.log("length vector")
-    console.log(vectorComplete.length) 
+    console.log(vector)    
 
     //const vectorCompleteCopy = vectorComplete
     console.log("string letras duplicadas 4 en secuencia Aaron")
 
-    vector.forEach(l =>{
-        //console.log(allEqual(l))
+    vector.forEach(l =>{        
         if(allEqual(l)) has = true
     })
-
-    //console.log(find_duplicate_in_array(vector));
-
-    // let counts = [];
-    // for(let i = 0; i <= vectorComplete.length; i++) {
-    //     if(counts[vectorComplete[i]] === undefined) {
-    //         counts[vectorComplete[i]] = 1;
-    //     } else {
-    //         has = true
-    //     }
-    // }
-
-    // console.log("encontrando duplicado")
-    // console.log(counts)
-    // console.log("hasMutation ?")
-    // console.log(has)
-
-    // console.log("each parameter => ")
-    // for (let i of dnaArrElements){
-    //     console.log(i)
-    // }
-
-    //let has = false;
-    // console.log("dna => ")
-    // console.log(dna.data)
-    // const arrStrDNA = dna;
-    // console.log("arrStrDNA => ")
-    // console.log(dnaArr)
-    // console.log("arrStrDNA 0 => ")
-    // console.log(dnaArr[0])
     console.log(has)    
     return has;
 }
@@ -391,53 +334,10 @@ function allEqual(input) {
     return input.split('').every(char => char === input[0]);
 }
 
-
-function find_duplicate_in_array(arra1) {
-    const object = {};
-    const result = [];
-
-    arra1.forEach(item => {
-        if(!object[item])
-            object[item] = 0;
-        object[item] += 1;
-    })
-
-    for (const prop in object) {
-        if(object[prop] >= 2) {
-            result.push(prop);
-        }
-    }
-
-    return result;
-
-}
-
-app.get('/debug', function(req, res, next) {
-
-    var details = {
-        "mongo_url": dbConnectionUrl,
-        "connected": false
-    };
-
-    mongo.connect(dbConnectionUrl, (err, client) => {
-        if (err) {
-            console.error(err)
-        } else {
-            console.log('Connected to Mongo')
-            details["connected"] = true;
-            console.log("Updated details")
-        }
-        res.send(details);
-    });
-});
-
 app.use(function(err, req, res, next) {
     console.error(err.stack);
     res.status(500).send('Something went wrong.')
 });
 
 app.listen(port, host);
-//app.listen(port, () => {
-//    console.log('Example app listening on port 8080!');
-//});
 console.log('Dna Backend started on: ' + host + ':' + port);
