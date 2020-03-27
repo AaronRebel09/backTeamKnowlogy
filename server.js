@@ -111,6 +111,24 @@ app.post('/mutation/', (req, res) => {
     res.send('has mutation? : '+ has)
 });
 
+app.get('/dnas', (req, res) => {
+    console.log('Hello dnas!');
+    mongo.connect(dbConnectionUrl, (err, client) => {
+        if (err) {
+          console.error(err);
+          res.send({success: false, result: 9999});
+        } else {
+            const db = client.db(dbName);
+            const collection = db.collection('dna');
+            collection.find({}).toArray(function(err, docs) {                
+                console.log("Found the following records");
+                console.log(docs);   
+                res.send(JSON.stringify(docs));             
+            });            
+        }
+    });
+});
+
 function hasMutation(dna) {
     let has = false
     console.log("hasMutation Method")
@@ -308,7 +326,6 @@ function hasMutation(dna) {
     vector.forEach(l =>{        
         if(allEqual(l)) has = true
     })
-
     console.log(has)    
     return has;
 }
@@ -323,5 +340,4 @@ app.use(function(err, req, res, next) {
 });
 
 app.listen(port, host);
-
 console.log('Dna Backend started on: ' + host + ':' + port);
